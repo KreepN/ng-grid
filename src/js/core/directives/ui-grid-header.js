@@ -24,19 +24,12 @@
 
             containerCtrl.header = $elm;
             containerCtrl.colContainer.header = $elm;
-
-            /**
-             * @ngdoc property
-             * @name hideHeader
-             * @propertyOf ui.grid.class:GridOptions
-             * @description Null by default. When set to true, this setting will replace the
-             * standard header template with '<div></div>', resulting in no header being shown.
-             */
             
             var headerTemplate;
-            if ($scope.grid.options.hideHeader){
+            if (!$scope.grid.options.showHeader) {
               headerTemplate = emptyTemplate;
-            } else {
+            }
+            else {
               headerTemplate = ($scope.grid.options.headerTemplate) ? $scope.grid.options.headerTemplate : defaultTemplate;            
             }
 
@@ -93,7 +86,6 @@
                   asteriskNum = 0,
                   oneAsterisk = 0,
                   leftoverWidth = availableWidth,
-                  autoWidth = 0,
                   hasVariableWidth = false;
               
               var getColWidth = function(column){
@@ -149,16 +141,11 @@
                 }
                 column.drawnWidth = Math.floor(colWidth);
                 canvasWidth += column.drawnWidth;
-                if (column.widthType === "auto") {
-                  autoWidth += column.drawnWidth;
-                } else {
-                  leftoverWidth -= column.drawnWidth;
-                }
+                leftoverWidth -= column.drawnWidth;
               });
-              leftoverWidth = leftoverWidth - autoWidth;
+
               // If the grid width didn't divide evenly into the column widths and we have pixels left over, dole them out to the columns one by one to make everything fit
               if (hasVariableWidth && leftoverWidth > 0 && canvasWidth > 0 && canvasWidth < availableWidth) {
-                var prevLeftover = leftoverWidth;
                 var remFn = function (column) {
                   if (leftoverWidth > 0 && (column.widthType === "auto" || column.widthType === "percent")) {
                     column.drawnWidth = column.drawnWidth + 1;
@@ -166,10 +153,11 @@
                     leftoverWidth--;
                   }
                 };
-                while (leftoverWidth > 0 && leftoverWidth !== prevLeftover ) {
+                var prevLeftover = 0;
+                do {
                   prevLeftover = leftoverWidth;
                   columnCache.forEach(remFn);
-                }
+                } while (leftoverWidth > 0 && leftoverWidth !== prevLeftover );
               }
               canvasWidth = Math.max(canvasWidth, availableWidth);
 

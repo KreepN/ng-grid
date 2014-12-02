@@ -22,7 +22,6 @@ describe('uiGridHeaderCell', function () {
   ];
 
   beforeEach(module('ui.grid'));
-  beforeEach(module('ngAnimateMock'));
 
   beforeEach(inject(function (_$compile_, $rootScope, _$document_, _$timeout_, _$window_, _$animate_, _uiGridConstants_) {
     $scope = $rootScope;
@@ -90,8 +89,7 @@ describe('uiGridHeaderCell', function () {
 
         headerCell1.trigger({ type: 'mousedown', button: 3 });
 
-        // the final ng-if call is buried inside a $animate callback, flush it
-        $animate.triggerCallbacks();
+        $timeout.flush();
         $scope.$digest();
 
         expect(menu.find('.ui-grid-menu-inner').length).toEqual(0, 'column menu is not visible');
@@ -105,12 +103,26 @@ describe('uiGridHeaderCell', function () {
 
         $document.trigger('click');
 
-        // the final ng-if call is buried inside a $animate callback, flush it
-        $animate.triggerCallbacks();
+        $timeout.flush();
         $scope.$digest();
         
         expect(menu.find('.ui-grid-menu-inner').length).toEqual(0, 'column menu is not visible');
       }));
+    });
+
+    describe('when window is resized', function () {
+      it('should hide an open menu', function () {
+        openMenu();
+        expect(menu.find('.ui-grid-menu-inner').length).toEqual(1, 'column menu is visible');
+        
+        $(window).trigger('resize');
+        $scope.$digest();
+
+        $timeout.flush();
+        $scope.$digest();
+
+        expect(menu.find('.ui-grid-menu-inner').length).toEqual(0, 'column menu is not visible');
+      });
     });
 
     describe('with enableColumnMenu off', function() {
@@ -136,24 +148,6 @@ describe('uiGridHeaderCell', function () {
         expect(headers.length).toEqual(2);
       });
     });
-
-    describe('when window is resized', function () {
-      it('should hide an open menu', function () {
-        delete $scope.gridOpts.columnDefs[0].enableColumnMenu;
-        openMenu();
-        expect(menu.find('.ui-grid-menu-inner').length).toEqual(1, 'column menu is visible');
-        
-        $(window).trigger('resize');
-        $scope.$digest();
-
-        // the final ng-if call is buried inside a $animate callback, flush it
-        $animate.triggerCallbacks();
-        $scope.$digest();
-
-        expect(menu.find('.ui-grid-menu-inner').length).toEqual(0, 'column menu is not visible');
-      });
-    });
-
     // TODO(c0bra): Allow extra items to be added to a column menu through columnDefs
   });
 
